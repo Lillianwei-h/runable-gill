@@ -1,6 +1,6 @@
 # Runable Gill
 
-I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(you need to login to your huggingface to download the new sd1.5 model). But still there may exist some errors like tensor size not match and CUDA error. I hope you can avoid these errors by reducing batch size.
+I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(you need to login to your huggingface to download the new sd1.5 model). If CUDA error exisits, you can reduce batch_size or max_text_length by passing args.
 
 ## Enivironment
 ```
@@ -58,6 +58,7 @@ You can also run `inference.sh` for multi GPUs inference. Remeber to change the 
 | `--input_dir`  | Path to the input directory               | `../data`       |
 | `--output_dir` | Path to the output directory             | `../data_output`|
 | `--task`       | Task name                                 | `wikihow`       |
-| `--batch_size` | Batch size                               | `4`             |
+| `--batch_size` | Batch size                               | `5`             |
 | `--begin_idx`            | Beginning index                          | `None`          |
 | `--end_idx`              | Ending index                             | `None`          |
+| `--max_text_length`   | Max text length   | `2000`    |
