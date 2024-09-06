@@ -549,7 +549,8 @@ class GILL(nn.Module):
     if load_sd:
       model_id = "benjamin-paine/stable-diffusion-v1-5"
       self.sd_pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16).to("cuda")
-
+      self.sd_pipe.set_progress_bar_config(disable=True)
+      
     if decision_model_path is not None:
       print('Loading decision model...')
       self.decision_model = nn.Sequential(*[
