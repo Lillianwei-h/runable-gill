@@ -21,8 +21,8 @@ def parse_args():
                         help="Path to the output directory (default: '../data_output')")
     parser.add_argument('--task', type=str, default='wikihow', 
                         help="Task name (default: 'wikihow')")
-    parser.add_argument('--batch_size', type=int, default=5, 
-                        help="Batch size (default: 5)")
+    parser.add_argument('--batch_size', type=int, default=4, 
+                        help="Batch size (default: 4)")
     parser.add_argument('--begin_idx', type=int, default=None, 
                         help="Beginning index (default: None)")
     parser.add_argument('--end_idx', type=int, default=None, 
@@ -55,29 +55,32 @@ def generate_dialogue(prompts: list, system_message: str = None, num_words: int 
                 formatted_prompt.append(f'User: {p}')
         formatted_prompt.append('=' * divider_count)  # Add divider
 
-        return_outputs = model.generate_for_images_and_texts(
-            full_inputs, num_words=num_words, ret_scale_factor=sf,
-            generator=g_cuda, temperature=temperature, top_p=top_p)
+        try:
+            return_outputs = model.generate_for_images_and_texts(
+                full_inputs, num_words=num_words, ret_scale_factor=sf,
+                generator=g_cuda, temperature=temperature, top_p=top_p)
 
-        # Add outputs
-        output_text = return_outputs[0].replace('[IMG0] [IMG1] [IMG2] [IMG3] [IMG4] [IMG5] [IMG6] [IMG7]', '')
-        full_inputs.append(output_text + '\n')
+            # Add outputs
+            output_text = return_outputs[0].replace('[IMG0] [IMG1] [IMG2] [IMG3] [IMG4] [IMG5] [IMG6] [IMG7]', '')
+            full_inputs.append(output_text + '\n')
 
-        formatted_return_outputs = []
-        answers[id] = ""
-        images[id] = []
-        for p in return_outputs:
-            if type(p) == str:
-                p_formatted = p.replace('[IMG0] [IMG1] [IMG2] [IMG3] [IMG4] [IMG5] [IMG6] [IMG7]', '')
-                p_formatted = p_formatted.replace('[IMG0][IMG1][IMG2][IMG3][IMG4][IMG5][IMG6][IMG7]', '')
-                answers[id] += p_formatted
-                formatted_return_outputs.append(f'GILL: {p_formatted}')
-            else:
-                formatted_return_outputs.append(p)
-                images[id].append(p)
-        formatted_return_outputs.append('=' * divider_count)  # Add divider
+            formatted_return_outputs = []
+            answers[id] = ""
+            images[id] = []
+            for p in return_outputs:
+                if type(p) == str:
+                    p_formatted = p.replace('[IMG0] [IMG1] [IMG2] [IMG3] [IMG4] [IMG5] [IMG6] [IMG7]', '')
+                    p_formatted = p_formatted.replace('[IMG0][IMG1][IMG2][IMG3][IMG4][IMG5][IMG6][IMG7]', '')
+                    answers[id] += p_formatted
+                    formatted_return_outputs.append(f'GILL: {p_formatted}')
+                else:
+                    formatted_return_outputs.append(p)
+                    images[id].append(p)
+            formatted_return_outputs.append('=' * divider_count)  # Add divider
 
-        full_outputs[id] = formatted_prompt + formatted_return_outputs
+            full_outputs[id] = formatted_prompt + formatted_return_outputs
+        except Exception as e:
+            print(e)
 
     return full_outputs, answers, images
 
@@ -89,13 +92,12 @@ if __name__ == "__main__":
     output_path = os.path.join(args.output_dir,args.task)
     os.makedirs(output_path, exist_ok=True)
 
+    # add your own task here
     if 'wikihow' in args.task:
         prompts = WikihowDataloader(input_path, args.begin_idx, args.end_idx)
     
     prompts_items = list(prompts.items())
     prompts_batch = [dict(prompts_items[i:i + args.batch_size]) for i in range(0, len(prompts_items), args.batch_size)]
-    all_answers = {}
-    all_images = {}
 
     # Download the model checkpoint and embeddings to checkpoints/gill_opt/
     model_dir = 'checkpoints/gill_opt/'
@@ -106,30 +108,46 @@ if __name__ == "__main__":
     top_p = 0.95  # If you set temperature to 0.6, set this to 0.95
     num_words = 50
 
+    output_data = []
     for prompts in tqdm(prompts_batch, total=len(prompts_batch)):
         _, answers, images = generate_dialogue(prompts, num_words=num_words, sf=sf, temperature=temperature, top_p=top_p)
-        all_answers.update(answers)
-        all_images.update(images)
+        for id, image_set in images.items():
+            img_paths = []
+            os.makedirs(f'{output_path}/images/{id}',exist_ok=True)
+            for i,image in enumerate(image_set):
+                if image['decision'][0] == 'gen':
+                    img = image['gen'][0][0].resize((512, 512))
+                    img_path = f'{id}/{i}_gen.png'
+                else:
+                    img = image['ret'][0][0].resize((512, 512))
+                    img_path = f'{id}/{i}_ret.png'
+                img.save(f'{output_path}/images/{img_path}')
+                img_paths.append(img_path)
+            d = {}
+            d['answer'] = answers[id]
+            d['images'] = img_paths
+            output_data.append(d)
+        with open(os.path.join(output_path,f'data_{args.begin_idx}_{args.end_idx}_temp.json'),'w') as f:
+            json.dump(output_data, f, indent=4)
 
-    output_data = []
-    for id, answer in all_answers.items():
-        d = {}
-        d['id'] = id
-        d['answer'] = answer
-        img_paths = []
-        for i,image in enumerate(all_images[id]):
-            os.makedirs(f'{output_path}/{id}',exist_ok=True)
-            if image['decision'][0] == 'gen':
-                img = image['gen'][0][0].resize((512, 512))
-                img_path = f'{id}/{i}_gen.png'
-            else:
-                img = image['ret'][0][0].resize((512, 512))
-                img_path = f'{id}/{i}_ret.png'
-            img.save(f'{output_path}/{img_path}')
-            img_paths.append(img_path)
+    # for id, answer in all_answers.items():
+    #     d = {}
+    #     d['id'] = id
+    #     d['answer'] = answer
+    #     img_paths = []
+    #     os.makedirs(f'{output_path}/{id}',exist_ok=True)
+    #     for i,image in enumerate(all_images[id]):
+    #         if image['decision'][0] == 'gen':
+    #             img = image['gen'][0][0].resize((512, 512))
+    #             img_path = f'{id}/{i}_gen.png'
+    #         else:
+    #             img = image['ret'][0][0].resize((512, 512))
+    #             img_path = f'{id}/{i}_ret.png'
+    #         img.save(f'{output_path}/{img_path}')
+    #         img_paths.append(img_path)
 
-        d['images'] = img_paths
-        output_data.append(d)
+    #     d['images'] = img_paths
+    #     output_data.append(d)
 
     with open(os.path.join(output_path,f'data_{args.begin_idx}_{args.end_idx}.json'),'w') as f:
         json.dump(output_data, f, indent=4)
