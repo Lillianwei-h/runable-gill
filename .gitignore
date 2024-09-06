@@ -5,3 +5,5 @@ __pycache__
 venv
 runs/
 data/cc3m
+outputs/
+logs/
