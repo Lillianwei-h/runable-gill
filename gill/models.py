@@ -547,7 +547,7 @@ class GILL(nn.Module):
 
     # Load the Stable Diffusion model.
     if load_sd:
-      model_id = "runwayml/stable-diffusion-v1-5"
+      model_id = "benjamin-paine/stable-diffusion-v1-5"
       self.sd_pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16).to("cuda")
 
     if decision_model_path is not None:
@@ -851,10 +851,10 @@ def load_gill(model_dir: str, load_ret_embs: bool = True, decision_model_fn: str
   # Add [IMG] tokens to the vocabulary.
   model_kwargs['retrieval_token_idx'] = []
   for i in range(model_kwargs['num_tokens']):
-      print(f'Adding [IMG{i}] token to vocabulary.')
-      print(f'Before adding new token, tokenizer("[IMG{i}]") =', tokenizer(f'[IMG{i}]', add_special_tokens=False))
+      # print(f'Adding [IMG{i}] token to vocabulary.')
+      # print(f'Before adding new token, tokenizer("[IMG{i}]") =', tokenizer(f'[IMG{i}]', add_special_tokens=False))
       num_added_tokens = tokenizer.add_tokens(f'[IMG{i}]')
-      print(f'After adding {num_added_tokens} new tokens, tokenizer("[IMG{i}]") =', tokenizer(f'[IMG{i}]', add_special_tokens=False))
+      # print(f'After adding {num_added_tokens} new tokens, tokenizer("[IMG{i}]") =', tokenizer(f'[IMG{i}]', add_special_tokens=False))
       ret_token_idx = tokenizer(f'[IMG{i}]', add_special_tokens=False).input_ids
       assert len(ret_token_idx) == 1, ret_token_idx
       model_kwargs['retrieval_token_idx'].append(ret_token_idx[0])
@@ -877,7 +877,7 @@ def load_gill(model_dir: str, load_ret_embs: bool = True, decision_model_fn: str
   model = model.cuda()
 
   # Load pretrained linear mappings and [IMG] embeddings.
-  checkpoint = torch.load(model_ckpt_path)
+  checkpoint = torch.load(model_ckpt_path, weights_only=True)
   state_dict = {}
   # This is needed if we train with DDP.
   for k, v in checkpoint['state_dict'].items():
