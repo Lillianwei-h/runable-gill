@@ -21,8 +21,8 @@ def parse_args():
                         help="Path to the output directory (default: '../data_output')")
     parser.add_argument('--task', type=str, default='wikihow', 
                         help="Task name (default: 'wikihow')")
-    parser.add_argument('--batch_size', type=int, default=4, 
-                        help="Batch size (default: 4)")
+    parser.add_argument('--batch_size', type=int, default=5, 
+                        help="Batch size (default: 5)")
     parser.add_argument('--begin_idx', type=int, default=None, 
                         help="Beginning index (default: None)")
     parser.add_argument('--end_idx', type=int, default=None, 
@@ -90,7 +90,9 @@ if __name__ == "__main__":
 
     input_path = os.path.join(args.input_dir,args.task)
     output_path = os.path.join(args.output_dir,args.task)
+    output_temp_path = os.path.join(output_path, 'temp')
     os.makedirs(output_path, exist_ok=True)
+    os.makedirs(output_temp_path, exist_ok=True)
 
     # add your own task here
     if 'wikihow' in args.task:
@@ -117,37 +119,19 @@ if __name__ == "__main__":
             for i,image in enumerate(image_set):
                 if image['decision'][0] == 'gen':
                     img = image['gen'][0][0].resize((512, 512))
-                    img_path = f'{id}/{i}_gen.png'
+                    img_path = f'images/{id}/{i}_gen.png'
                 else:
                     img = image['ret'][0][0].resize((512, 512))
-                    img_path = f'{id}/{i}_ret.png'
-                img.save(f'{output_path}/images/{img_path}')
+                    img_path = f'images/{id}/{i}_ret.png'
+                img.save(f'{output_path}/{img_path}')
                 img_paths.append(img_path)
             d = {}
+            d['id'] = id
             d['answer'] = answers[id]
             d['images'] = img_paths
             output_data.append(d)
-        with open(os.path.join(output_path,f'data_{args.begin_idx}_{args.end_idx}_temp.json'),'w') as f:
+        with open(os.path.join(output_temp_path,f'data_{args.begin_idx}_{args.end_idx}_temp.json'),'w') as f:
             json.dump(output_data, f, indent=4)
-
-    # for id, answer in all_answers.items():
-    #     d = {}
-    #     d['id'] = id
-    #     d['answer'] = answer
-    #     img_paths = []
-    #     os.makedirs(f'{output_path}/{id}',exist_ok=True)
-    #     for i,image in enumerate(all_images[id]):
-    #         if image['decision'][0] == 'gen':
-    #             img = image['gen'][0][0].resize((512, 512))
-    #             img_path = f'{id}/{i}_gen.png'
-    #         else:
-    #             img = image['ret'][0][0].resize((512, 512))
-    #             img_path = f'{id}/{i}_ret.png'
-    #         img.save(f'{output_path}/{img_path}')
-    #         img_paths.append(img_path)
-
-    #     d['images'] = img_paths
-    #     output_data.append(d)
 
     with open(os.path.join(output_path,f'data_{args.begin_idx}_{args.end_idx}.json'),'w') as f:
         json.dump(output_data, f, indent=4)
