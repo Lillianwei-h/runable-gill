@@ -1,6 +1,6 @@
 # Runable Gill
 
-I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(by changing it to `benjamin-paine/stable-diffusion-v1-5`. You need to login to your huggingface to download it). 
+I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(by changing it to `benjamin-paine/stable-diffusion-v1-5`. You need to log in your huggingface before downloading it). 
 
 If CUDA error exisits during inference, you can reduce `batch_size` or `max_text_length` by passing args.
 
