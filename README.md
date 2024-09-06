@@ -1,10 +1,13 @@
 # Runable Gill
 
-I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(you need to login to your huggingface to download the new sd1.5 model). If CUDA error exisits, you can reduce batch_size or max_text_length by passing args.
+I add inference code for json file and fix some bugs includng requirements incompatibility and out-of-date sd1.5 model(by changing it to `benjamin-paine/stable-diffusion-v1-5`. You need to login to your huggingface to download it). 
+
+If CUDA error exisits during inference, you can reduce `batch_size` or `max_text_length` by passing args.
 
 ## Enivironment
 ```
 conda create -n gill python=3.10
+conda activate gill
 pip install -r requirements.txt
 ```
 
