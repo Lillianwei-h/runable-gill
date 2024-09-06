@@ -2,7 +2,7 @@ import os
 from gill import utils
 import json
 
-def WikihowDataloader(input_path, begin_idx, end_idx):
+def WikihowDataloader(input_path, begin_idx, end_idx, max_text_length):
     with open(os.path.join(input_path, 'data.json'), 'r') as f:
         data = json.load(f)
 
@@ -26,7 +26,7 @@ def WikihowDataloader(input_path, begin_idx, end_idx):
                     img = utils.get_image_from_path(img_path),
                     prompt.append(img)
             
-        if text_length < 2000:
+        if text_length <= max_text_length:
             prompts[id] = prompt
         else:
             print(f'{id}: Data is too big! Omitted!')

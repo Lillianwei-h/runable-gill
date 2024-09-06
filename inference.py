@@ -27,6 +27,9 @@ def parse_args():
                         help="Beginning index (default: None)")
     parser.add_argument('--end_idx', type=int, default=None, 
                         help="Ending index (default: None)")
+    parser.add_argument('--max_text_length', type=int, default=2000, 
+                        help="Max text length (default: 2000)")
+                        
     args = parser.parse_args()
     return args
 
@@ -96,7 +99,7 @@ if __name__ == "__main__":
 
     # add your own task here
     if 'wikihow' in args.task:
-        prompts = WikihowDataloader(input_path, args.begin_idx, args.end_idx)
+        prompts = WikihowDataloader(input_path, args.begin_idx, args.end_idx, args.max_text_length)
     
     prompts_items = list(prompts.items())
     prompts_batch = [dict(prompts_items[i:i + args.batch_size]) for i in range(0, len(prompts_items), args.batch_size)]
