@@ -9,7 +9,7 @@ import torch
 
 from gill import models
 from gill import utils
-from data_loader import WikihowDataloader
+from data_loader import WikihowDataloader, VISTDataloader
 
 import argparse
 
@@ -17,9 +17,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Inference on Gill")
     parser.add_argument('--input_dir', type=str, default='../data', 
                         help="Path to the input directory (default: '../data')")
-    parser.add_argument('--output_dir', type=str, default='../data_output', 
+    parser.add_argument('--output_dir', type=str, default='../data_output/gill', 
                         help="Path to the output directory (default: '../data_output')")
-    parser.add_argument('--task', type=str, default='wikihow', 
+    parser.add_argument('--task', type=str, default='remi', 
                         help="Task name (default: 'wikihow')")
     parser.add_argument('--batch_size', type=int, default=5, 
                         help="Batch size (default: 5)")
@@ -98,8 +98,10 @@ if __name__ == "__main__":
     os.makedirs(output_temp_path, exist_ok=True)
 
     # add your own task here
-    if 'wikihow' in args.task:
+    if 'wikihow' in args.task or 'mathvista' in args.task or 'remi' in args.task:
         prompts = WikihowDataloader(input_path, args.begin_idx, args.end_idx, args.max_text_length)
+    elif args.task == 'vist':
+        prompts = VISTDataloader(input_path, args.begin_idx, args.end_idx, args.max_text_length)
     
     prompts_items = list(prompts.items())
     prompts_batch = [dict(prompts_items[i:i + args.batch_size]) for i in range(0, len(prompts_items), args.batch_size)]
@@ -114,6 +116,7 @@ if __name__ == "__main__":
     num_words = 50
 
     output_data = []
+    print(prompts_batch[0])
     for prompts in tqdm(prompts_batch, total=len(prompts_batch)):
         _, answers, images = generate_dialogue(prompts, num_words=num_words, sf=sf, temperature=temperature, top_p=top_p)
         for id, image_set in images.items():
