@@ -17,9 +17,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Inference on Gill")
     parser.add_argument('--input_dir', type=str, default='../data', 
                         help="Path to the input directory (default: '../data')")
-    parser.add_argument('--output_dir', type=str, default='../data_output/gill', 
+    parser.add_argument('--output_dir', type=str, default='../data_output', 
                         help="Path to the output directory (default: '../data_output')")
-    parser.add_argument('--task', type=str, default='remi', 
+    parser.add_argument('--task', type=str, default='wikihow', 
                         help="Task name (default: 'wikihow')")
     parser.add_argument('--batch_size', type=int, default=5, 
                         help="Batch size (default: 5)")
