@@ -22,7 +22,6 @@ If you use other dataloader, please remember to add your task and dataloader in 
 [
     {
         "id": "10008370",
-        "image": null,
         "conversations": [
             {
                 "from": "human",
